@@ -1,17 +1,25 @@
-// create web server with express
+//Create web server
+//Import express
 const express = require('express');
-const app = express();
-// use body-parser to parse requests
-const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-// use cors to allow cross origin resource sharing
-const cors = require('cors');
-app.use(cors());
-// use mongoose to connect to mongodb
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/comments');
-const connection = mongoose.connection;
-connection.once('open', function() {
-    console.log("MongoDB database connection established successfully");
-})
+//Create Router object
+const router = express.Router();
+
+//Import database connection
+const db = require('../db');
+//Import helper functions
+const { selectCommentsByPostId } = require('../db/helpers');
+
+//GET /comments/:id
+router.get('/:id', (req, res) => {
+  const postId = req.params.id;
+  db.query(selectCommentsByPostId, [postId])
+    .then((response) => {
+      res.json(response.rows);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
+
+//Export router
+module.exports = router;
